@@ -1,0 +1,4 @@
+pandas>=2.0
+numpy>=1.24
+# only needed to regenerate the README screenshots:
+playwright>=1.40
