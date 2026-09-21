@@ -1,0 +1,15 @@
+campaign_id,campaign,platform,channel_group,daily_budget_aed,base_cpc_aed,base_ctr,kind
+1,Search - Brand,Google Ads,Paid Search,1500,1.1,0.18,paid
+2,Search - Generic,Google Ads,Paid Search,3200,2.6,0.045,paid
+3,Performance Max - Retail,Google Ads,Performance Max,4200,1.7,0.021,paid
+4,YouTube - Awareness,Google Ads,Paid Video,2600,0.42,0.008,paid
+5,Meta - Prospecting,Meta Ads,Paid Social,3600,1.35,0.011,paid
+6,Meta - Retargeting,Meta Ads,Paid Social,1700,0.95,0.024,paid
+7,Meta - Seasonal Promo,Meta Ads,Paid Social,2100,1.2,0.014,paid
+8,TikTok - Spark Ads,TikTok Ads,Paid Social,2400,0.72,0.009,paid
+9,TikTok - Traffic,TikTok Ads,Paid Social,1500,0.55,0.007,paid
+10,LinkedIn - Corporate Bookings,LinkedIn Ads,Paid Social,1100,7.8,0.006,paid
+11,Organic Search,Owned,Organic Search,0,0.0,0.0,organic
+12,Email & CRM,Owned,Email / CRM,0,0.0,0.0,owned
+13,Direct,Owned,Direct,0,0.0,0.0,owned
+14,Referral & Partners,Owned,Referral,0,0.0,0.0,owned

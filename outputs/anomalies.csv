@@ -1,0 +1,13 @@
+date,metric,value,change_vs_baseline_pct,robust_z,direction
+2024-09-18,spend_aed,34788.5,52.0,20.4,spike
+2024-09-19,spend_aed,35145.7,52.0,20.4,spike
+2025-02-20,purchases,2741.0,55.0,22.6,spike
+2025-02-20,sessions,66222.0,54.0,23.2,spike
+2025-02-21,purchases,3141.0,64.0,25.9,spike
+2025-02-21,sessions,75420.0,60.0,25.2,spike
+2025-06-10,purchases,542.0,-62.0,-50.1,drop
+2025-06-10,sessions,13083.0,-62.0,-51.9,drop
+2025-06-11,purchases,558.0,-62.0,-51.3,drop
+2025-06-11,sessions,13630.0,-62.0,-52.2,drop
+2025-06-12,purchases,650.0,-62.0,-50.5,drop
+2025-06-12,sessions,15859.0,-62.0,-51.7,drop

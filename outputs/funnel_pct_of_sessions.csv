@@ -1,0 +1,5 @@
+device,sessions,engaged_sessions,add_to_cart,begin_checkout,purchases
+Desktop,100.0,68.56,18.66,9.72,5.97
+Mobile,100.0,57.57,12.03,6.26,3.85
+Tablet,100.0,61.22,14.85,7.73,4.76
+All devices,100.0,60.28,13.69,7.13,4.38

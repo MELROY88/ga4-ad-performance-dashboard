@@ -1,0 +1,5 @@
+device,engage_rate,cart_rate,checkout_rate,purchase_rate
+Desktop,68.6,27.2,52.1,61.4
+Mobile,57.6,20.9,52.1,61.5
+Tablet,61.2,24.3,52.0,61.5
+All devices,60.3,22.7,52.1,61.5
