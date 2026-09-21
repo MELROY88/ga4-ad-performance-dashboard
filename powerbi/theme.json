@@ -1,0 +1,12 @@
+{
+  "name": "Marhaba Dashboard",
+  "dataColors": ["#3b82f6", "#e4572e", "#2a9d8f", "#f4a261", "#7c5cbf", "#e63946", "#6c757d", "#0b3d91"],
+  "background": "#f5f6fa",
+  "foreground": "#1f2933",
+  "tableAccent": "#3b82f6",
+  "textClasses": {
+    "title": {"fontFace": "Segoe UI Semibold", "fontSize": 14, "color": "#1f2933"},
+    "label": {"fontFace": "Segoe UI", "fontSize": 10, "color": "#5b6675"},
+    "callout": {"fontFace": "Segoe UI Semibold", "fontSize": 28, "color": "#1f2933"}
+  }
+}
