@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GA4 + Paid Media Performance Dashboard</title>
+<style>
+:root{
+  --bg:#f4f6fa;--card:#ffffff;--ink:#16202e;--muted:#5d6b7e;--line:#e3e8ef;--accent:#1f6feb;--accent2:#e4572e;
+  --good:#1a8f5a;--warn:#c98a00;--bad:#c93b3b;--shadow:0 1px 2px rgba(20,30,50,.06),0 4px 14px rgba(20,30,50,.05);
+}
+@media (prefers-color-scheme: dark){
+  :root{--bg:#0e141c;--card:#161e29;--ink:#e8edf4;--muted:#93a1b5;--line:#263241;--accent:#5b9dff;--accent2:#ff7a59;
+        --good:#37c98a;--warn:#e6b422;--bad:#ff6b6b;--shadow:none}
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+header{padding:22px 28px 14px}
+h1{margin:0;font-size:22px;letter-spacing:-.2px}
+.sub{color:var(--muted);margin-top:4px;font-size:13px}
+.badge{display:inline-block;background:var(--accent);color:#fff;border-radius:99px;padding:2px 10px;font-size:11px;margin-left:8px;vertical-align:middle}
+.filters{display:flex;flex-wrap:wrap;gap:14px;padding:0 28px 8px;align-items:end}
+.filters label{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+select{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:13px;min-width:140px}
+button.reset{background:transparent;color:var(--accent);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer;font-size:13px}
+main{padding:8px 28px 40px;max-width:1500px;margin:0 auto}
+.grid{display:grid;gap:14px}
+.kpis{grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin:8px 0 14px}
+.kpi{background:var(--card);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow);border:1px solid var(--line)}
+.kpi .l{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+.kpi .v{font-size:25px;font-weight:650;margin-top:6px;letter-spacing:-.4px}
+.kpi .d{font-size:12px;margin-top:4px;color:var(--muted)}
+.up{color:var(--good)}.down{color:var(--bad)}
+.card{background:var(--card);border-radius:12px;padding:16px 18px;box-shadow:var(--shadow);border:1px solid var(--line);min-width:0}
+.card h2{margin:0 0 2px;font-size:15px}
+.card .note{color:var(--muted);font-size:12px;margin-bottom:10px}
+.row2{grid-template-columns:2fr 1fr}
+.row3{grid-template-columns:1fr 1fr 1fr}
+.row2b{grid-template-columns:1fr 1fr}
+@media(max-width:1000px){.row2,.row3,.row2b{grid-template-columns:1fr}}
+svg{width:100%;height:auto;display:block}
+svg text{fill:var(--muted);font-size:10.5px;font-family:inherit}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{font-weight:600;color:var(--muted);text-align:right;padding:7px 8px;border-bottom:1px solid var(--line);cursor:pointer;white-space:nowrap;user-select:none;font-size:11.5px}
+th:first-child,td:first-child{text-align:left}
+td{padding:7px 8px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+tr:hover td{background:rgba(100,130,180,.07)}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px}
+.chip{border-radius:6px;padding:2px 7px;font-weight:600;font-size:12px}
+.chip.g{background:rgba(26,143,90,.14);color:var(--good)}.chip.w{background:rgba(201,138,0,.15);color:var(--warn)}.chip.b{background:rgba(201,59,59,.14);color:var(--bad)}
+.bar{height:16px;border-radius:4px;background:var(--accent)}
+.bars .r{display:grid;grid-template-columns:110px 1fr 120px;gap:10px;align-items:center;margin:8px 0;font-size:12.5px}
+.bars .r span:last-child{text-align:right;color:var(--muted);font-size:12px}
+ul.ins{margin:0;padding-left:18px;line-height:1.55}ul.ins li{margin:7px 0}
+.tip{position:fixed;pointer-events:none;background:#0b1220;color:#fff;font-size:12px;padding:8px 10px;border-radius:8px;opacity:0;transition:opacity .08s;z-index:9;max-width:260px;line-height:1.45}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted);margin:2px 0 8px}
+.hm td{padding:3px 4px;text-align:center;font-size:11px;border:1px solid var(--card)}
+footer{color:var(--muted);font-size:12px;padding:0 28px 26px;max-width:1500px;margin:0 auto;line-height:1.6}
+.scroll{overflow-x:auto}
+</style>
+</head>
+<body>
+<header>
+  <h1>GA4 + Paid Media Performance Dashboard <span class="badge">synthetic data</span></h1>
+  <div class="sub">Marhaba Lifestyle (fictional GCC entertainment and retail brand) · Jan 2024 to Dec 2025 · all money in AED</div>
+</header>
+
+<div class="filters">
+  <label>Year<select id="fYear"></select></label>
+  <label>Market<select id="fCountry"></select></label>
+  <label>Channel group<select id="fGroup"></select></label>
+  <label>Device<select id="fDevice"></select></label>
+  <button class="reset" id="reset">Reset filters</button>
+</div>
+
+<main>
+  <section class="grid kpis" id="kpis"></section>
+
+  <section class="grid row2">
+    <div class="card"><h2>Revenue and paid ROAS by month</h2><div class="note">Bars: revenue. Line: ROAS on paid media only (revenue attributed to paid campaigns divided by their spend).</div><div id="trend"></div></div>
+    <div class="card"><h2>What the data says</h2><div class="note">Written from the numbers in this dataset (full period, all filters off).</div><ul class="ins" id="ins"></ul></div>
+  </section>
+
+  <section class="grid" style="margin-top:14px"><div class="card"><h2>Campaign scorecard</h2><div class="note">Click a column to sort. ROAS: green 4x or more, amber 2.5x to 4x, red under 2.5x. Owned channels have no media spend.</div><div class="scroll" id="table"></div></div></section>
+
+  <section class="grid row3" style="margin-top:14px">
+    <div class="card"><h2>Purchase funnel</h2><div class="note">Sessions to purchase, with step conversion.</div><div id="funnel"></div></div>
+    <div class="card bars"><h2>Markets</h2><div class="note">Revenue share, conversion rate and paid ROAS.</div><div id="markets"></div></div>
+    <div class="card bars"><h2>Devices</h2><div class="note">Session share and conversion rate.</div><div id="devices"></div></div>
+  </section>
+
+  <section class="grid" style="margin-top:14px"><div class="card"><h2>Daily sessions, events and anomalies</h2><div class="note">Site level (channel, market and device filters do not apply). Shaded bands are planned events. Red markers are days the detector flagged against the same weekday in the previous four weeks.</div><div class="legend" id="dailyLegend"></div><div id="daily"></div></div></section>
+
+  <section class="grid row2b" style="margin-top:14px">
+    <div class="card"><h2>When do people visit?</h2><div class="note">Average sessions per day by weekday and month. Site level.</div><div class="scroll" id="heat"></div></div>
+    <div class="card"><h2>Customer cohort retention</h2><div class="note">% of each monthly acquisition cohort still buying N months later. Site level.</div><div class="scroll" id="cohort"></div></div>
+  </section>
+</main>
+
+<footer>
+  All data is synthetic and generated with a fixed random seed for portfolio purposes. No real company, customer or campaign data is used.
+  Built by Melroy Lopes · <a href="https://www.linkedin.com/in/melroylopes/" style="color:var(--accent)">LinkedIn</a>
+</footer>
+<div class="tip" id="tip"></div>
+
+<script>
+const D = /*__DATA__*/null;
+
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const camp = {}; D.campaigns.forEach(c => camp[c[0]] = {name:c[1], platform:c[2], group:c[3], kind:c[4]});
+const cname = {}; D.countries.forEach(c => cname[c[0]] = c[1]);
+const GC = {"Paid Search":"#2a6fdb","Performance Max":"#7c5cd6","Paid Video":"#d1495b","Paid Social":"#f2a541",
+            "Organic Search":"#2a9d8f","Email / CRM":"#6a994e","Direct":"#8d99ae","Referral":"#b5838d"};
+const groups = [...new Set(D.campaigns.map(c => c[3]))];
+const nf = (v,d=0) => Number(v).toLocaleString("en-US",{maximumFractionDigits:d,minimumFractionDigits:d});
+const aed = v => v>=1e6 ? nf(v/1e6,1)+"M" : v>=1e3 ? nf(v/1e3,1)+"K" : nf(v,0);
+const pct = v => nf(v,1)+"%";
+const tip = $("#tip");
+function showTip(e,html){tip.innerHTML=html;tip.style.opacity=1;const x=Math.min(e.clientX+14,innerWidth-270);tip.style.left=x+"px";tip.style.top=(e.clientY+14)+"px"}
+function hideTip(){tip.style.opacity=0}
+function bindTips(root){root.querySelectorAll("[data-tip]").forEach(el=>{el.addEventListener("mousemove",e=>showTip(e,el.dataset.tip));el.addEventListener("mouseleave",hideTip)})}
+
+/* row layout: 0 ym,1 cid,2 cc,3 dev,4 imp,5 clk,6 spend,7 sess,8 eng,9 newu,10 atc,11 chk,12 pur,13 rev */
+const S = {year:"All", country:"All", group:"All", device:"All", sortKey:"rev", sortDir:-1};
+
+function pick(o){
+  return D.rows.filter(r => (o.year==="All"||r[0].slice(0,4)===o.year) && (o.country==="All"||r[2]===o.country) &&
+    (o.group==="All"||camp[r[1]].group===o.group) && (o.device==="All"||r[3]===o.device));
+}
+function agg(rows){
+  const t={imp:0,clk:0,spend:0,sess:0,eng:0,newu:0,atc:0,chk:0,pur:0,rev:0,paidRev:0};
+  for(const r of rows){
+    t.imp+=r[4];t.clk+=r[5];t.spend+=r[6];t.sess+=r[7];t.eng+=r[8];t.newu+=r[9];t.atc+=r[10];t.chk+=r[11];t.pur+=r[12];t.rev+=r[13];
+    if(camp[r[1]].kind==="paid") t.paidRev+=r[13];
+  }
+  t.roas=t.spend?t.paidRev/t.spend:null; t.cpa=t.spend&&t.pur?t.spend/pickPaidPurchases(rows):null;
+  t.cvr=t.sess?100*t.pur/t.sess:0; t.aov=t.pur?t.rev/t.pur:0;
+  return t;
+}
+function pickPaidPurchases(rows){let p=0;for(const r of rows) if(camp[r[1]].kind==="paid") p+=r[12];return p||1}
+const chip = roas => roas==null?"<span class='chip' style='opacity:.4'>n/a</span>":
+  `<span class="chip ${roas>=4?'g':roas>=2.5?'w':'b'}">${nf(roas,2)}x</span>`;
+
+/* ---------- KPI cards ---------- */
+function kpis(){
+  const cur = agg(pick(S));
+  const prev = S.year==="2025" ? agg(pick({...S,year:"2024"})) : null;
+  const dl = (a,b,inv=false)=>{ if(!prev||!b) return "<div class='d'>&nbsp;</div>"; const ch=100*(a/b-1); const good=inv?ch<0:ch>0;
+    return `<div class="d ${good?'up':'down'}">${ch>0?'▲':'▼'} ${nf(Math.abs(ch),1)}% vs 2024</div>`;};
+  const items=[
+    ["Revenue","AED "+aed(cur.rev),dl(cur.rev,prev&&prev.rev)],
+    ["Sessions",aed(cur.sess),dl(cur.sess,prev&&prev.sess)],
+    ["Purchases",aed(cur.pur),dl(cur.pur,prev&&prev.pur)],
+    ["Conversion rate",pct(cur.cvr),dl(cur.cvr,prev&&prev.cvr)],
+    ["Avg order value","AED "+nf(cur.aov,0),dl(cur.aov,prev&&prev.aov)],
+    ["Paid spend","AED "+aed(cur.spend),dl(cur.spend,prev&&prev.spend,true)],
+    ["Paid ROAS",cur.roas==null?"n/a":nf(cur.roas,2)+"x",dl(cur.roas,prev&&prev.roas)],
+    ["Paid CPA",cur.cpa==null?"n/a":"AED "+nf(cur.cpa,1),dl(cur.cpa,prev&&prev.cpa,true)],
+  ];
+  $("#kpis").innerHTML = items.map(i=>`<div class="kpi"><div class="l">${i[0]}</div><div class="v">${i[1]}</div>${i[2]}</div>`).join("");
+}
+
+/* ---------- monthly trend ---------- */
+function trend(){
+  const rows = pick(S), months = [...new Set(rows.map(r=>r[0]))].sort();
+  const by = {}; months.forEach(m=>by[m]=[]); rows.forEach(r=>by[r[0]].push(r));
+  const pts = months.map(m=>({m, ...agg(by[m])}));
+  const W=760,H=270,L=52,R=44,T=14,B=30, iw=W-L-R, ih=H-T-B;
+  const maxRev = Math.max(...pts.map(p=>p.rev))*1.08||1;
+  const roasVals = pts.map(p=>p.roas).filter(v=>v!=null); const maxR = (Math.max(...roasVals,1))*1.15;
+  const bw = iw/pts.length;
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Monthly revenue and ROAS">`;
+  for(let i=0;i<=4;i++){const y=T+ih-ih*i/4; s+=`<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" stroke="var(--line)"/><text x="${L-6}" y="${y+3}" text-anchor="end">${aed(maxRev*i/4)}</text>
+    <text x="${W-R+6}" y="${y+3}">${nf(maxR*i/4,1)}x</text>`;}
+  pts.forEach((p,i)=>{
+    const h=ih*p.rev/maxRev, x=L+i*bw+bw*.16;
+    s+=`<rect x="${x}" y="${T+ih-h}" width="${bw*.68}" height="${h}" rx="3" fill="var(--accent)" opacity=".88"/>`;
+    if(i%2===0||pts.length<13) s+=`<text x="${L+i*bw+bw/2}" y="${H-10}" text-anchor="middle">${p.m.slice(2)}</text>`;
+    s+=`<rect x="${L+i*bw}" y="${T}" width="${bw}" height="${ih}" fill="transparent" data-tip="<b>${p.m}</b><br>Revenue AED ${aed(p.rev)}<br>Sessions ${aed(p.sess)}<br>Conversion ${pct(p.cvr)}<br>Paid ROAS ${p.roas==null?'n/a':nf(p.roas,2)+'x'}"/>`;
+  });
+  const path = pts.map((p,i)=>p.roas==null?null:[L+i*bw+bw/2, T+ih-ih*p.roas/maxR]).filter(Boolean);
+  if(path.length){ s+=`<polyline fill="none" stroke="var(--accent2)" stroke-width="2.4" points="${path.map(q=>q.join(",")).join(" ")}"/>`+
+    path.map(q=>`<circle cx="${q[0]}" cy="${q[1]}" r="2.8" fill="var(--accent2)"/>`).join(""); }
+  s+="</svg>"; $("#trend").innerHTML=s; bindTips($("#trend"));
+}
+
+/* ---------- campaign table ---------- */
+function table(){
+  const rows=pick(S), by={};
+  rows.forEach(r=>{(by[r[1]]=by[r[1]]||[]).push(r)});
+  let list = Object.keys(by).map(id=>({id:+id, ...camp[id], ...agg(by[id])}));
+  list.forEach(c=>{c.ctr=c.imp?100*c.clk/c.imp:null; c.cpc=c.clk&&c.spend?c.spend/c.clk:null; c.cpaC=c.spend&&c.pur?c.spend/c.pur:null});
+  const k=S.sortKey,d=S.sortDir; list.sort((a,b)=>{const x=a[k]==null?-1e18:a[k],y=b[k]==null?-1e18:b[k];return typeof x==="string"?d*x.localeCompare(y):d*(x-y)});
+  const cols=[["name","Campaign"],["spend","Spend"],["rev","Revenue"],["roas","ROAS"],["cpaC","CPA"],["cpc","CPC"],["ctr","CTR"],["sess","Sessions"],["cvr","CVR"],["aov","AOV"]];
+  const total=agg(rows);
+  let h="<table><thead><tr>"+cols.map(c=>`<th data-k="${c[0]}">${c[1]}${S.sortKey===c[0]?(S.sortDir<0?" ▾":" ▴"):""}</th>`).join("")+"</tr></thead><tbody>";
+  list.forEach(c=>{h+=`<tr><td><span class="dot" style="background:${GC[c.group]}"></span>${c.name}<span style="color:var(--muted);font-size:11px"> · ${c.platform}</span></td>
+   <td>${c.spend?aed(c.spend):"–"}</td><td>${aed(c.rev)}</td><td>${c.spend?chip(c.paidRev/c.spend):"–"}</td>
+   <td>${c.cpaC==null?"–":nf(c.cpaC,1)}</td><td>${c.cpc==null?"–":nf(c.cpc,2)}</td><td>${c.ctr==null?"–":pct(c.ctr)}</td>
+   <td>${aed(c.sess)}</td><td>${pct(c.cvr)}</td><td>${nf(c.aov,0)}</td></tr>`});
+  h+=`<tr style="font-weight:650"><td>Total</td><td>${aed(total.spend)}</td><td>${aed(total.rev)}</td><td>${total.spend?chip(total.roas):"–"}</td><td>${total.cpa==null?"–":nf(total.cpa,1)}</td>
+   <td>${total.clk&&total.spend?nf(total.spend/total.clk,2):"–"}</td><td>${total.imp?pct(100*total.clk/total.imp):"–"}</td><td>${aed(total.sess)}</td><td>${pct(total.cvr)}</td><td>${nf(total.aov,0)}</td></tr></tbody></table>`;
+  $("#table").innerHTML=h;
+  $("#table").querySelectorAll("th").forEach(th=>th.onclick=()=>{const kk=th.dataset.k; if(S.sortKey===kk) S.sortDir*=-1; else {S.sortKey=kk;S.sortDir=kk==="name"?1:-1} table()});
+}
+
+/* ---------- funnel ---------- */
+function funnel(){
+  const t=agg(pick(S)), steps=[["Sessions",t.sess],["Engaged sessions",t.eng],["Add to cart",t.atc],["Begin checkout",t.chk],["Purchase",t.pur]];
+  const W=420,rowH=52; let s=`<svg viewBox="0 0 ${W} ${rowH*5}">`;
+  steps.forEach((st,i)=>{
+    const w=Math.max(6,(W-120)*st[1]/steps[0][1]), y=i*rowH+6;
+    const conv=i? 100*st[1]/steps[i-1][1] : null;
+    s+=`<rect x="0" y="${y}" width="${w}" height="30" rx="5" fill="var(--accent)" opacity="${1-i*.14}"/>
+        <text x="8" y="${y+19}" style="fill:#fff;font-size:12px;font-weight:600">${st[0]}</text>
+        <text x="${w+8}" y="${y+14}" style="fill:var(--ink);font-size:12px;font-weight:600">${aed(st[1])}</text>
+        ${conv==null?"":`<text x="${w+8}" y="${y+27}" style="font-size:11px">${pct(conv)} of previous step</text>`}`;
+  });
+  $("#funnel").innerHTML=s+"</svg>";
+}
+
+/* ---------- markets & devices ---------- */
+function splitBars(elId, keyFn, labelFn, extra){
+  const rows=pick(S), by={}; rows.forEach(r=>{const k=keyFn(r);(by[k]=by[k]||[]).push(r)});
+  const list=Object.keys(by).map(k=>({k,...agg(by[k])})).sort((a,b)=>b.rev-a.rev);
+  const tot=list.reduce((a,b)=>a+b.rev,0)||1, totS=list.reduce((a,b)=>a+b.sess,0)||1;
+  $(elId).innerHTML=list.map(x=>{const share=extra==="rev"?100*x.rev/tot:100*x.sess/totS;
+    return `<div class="r"><span>${labelFn(x.k)}</span><div><div class="bar" style="width:${Math.max(2,share)}%"></div></div>
+    <span>${nf(share,0)}% · CVR ${pct(x.cvr)}${extra==="rev"&&x.roas?` · ${nf(x.roas,1)}x`:""}</span></div>`}).join("");
+}
+
+/* ---------- daily chart ---------- */
+function daily(){
+  const days = D.daily.filter(d=>S.year==="All"||d[0].slice(0,4)===S.year);
+  const W=1100,H=250,L=48,R=14,T=12,B=28,iw=W-L-R,ih=H-T-B, n=days.length;
+  const maxV=Math.max(...days.map(d=>d[2]))*1.05, x=i=>L+iw*i/(n-1), y=v=>T+ih-ih*v/maxV;
+  const idx={}; days.forEach((d,i)=>idx[d[0]]=i);
+  let s=`<svg viewBox="0 0 ${W} ${H}">`;
+  for(let i=0;i<=4;i++){const yy=T+ih-ih*i/4;s+=`<line x1="${L}" x2="${W-R}" y1="${yy}" y2="${yy}" stroke="var(--line)"/><text x="${L-6}" y="${yy+3}" text-anchor="end">${aed(maxV*i/4)}</text>`}
+  D.events.forEach(e=>{const a=days.findIndex(d=>d[0]>=e[1]), bIdx=days.map(d=>d[0]<=e[2]).lastIndexOf(true);
+    if(a>=0&&bIdx>=a){const x0=x(a),x1=x(bIdx)||x0+2; s+=`<rect x="${x0}" y="${T}" width="${Math.max(3,x1-x0)}" height="${ih}" fill="var(--accent)" opacity=".11" data-tip="<b>${e[0]}</b><br>${e[1]} to ${e[2]}"/>`}});
+  s+=`<polyline fill="none" stroke="var(--accent)" stroke-width="1.1" opacity=".55" points="${days.map((d,i)=>x(i)+","+y(d[2])).join(" ")}"/>`;
+  const ma=days.map((d,i)=>{const sl=days.slice(Math.max(0,i-6),i+1);return sl.reduce((a,b)=>a+b[2],0)/sl.length});
+  s+=`<polyline fill="none" stroke="var(--accent2)" stroke-width="1.9" points="${ma.map((v,i)=>x(i)+","+y(v)).join(" ")}"/>`;
+  const seen=new Set();
+  D.anomalies.forEach(a=>{const i=idx[a[0]]; if(i==null||a[1]!=="sessions"&&a[1]!=="spend_aed"&&a[1]!=="purchases") return;
+    const key=a[0]+a[1]; if(seen.has(key)) return; seen.add(key);
+    s+=`<circle cx="${x(i)}" cy="${a[1]==="spend_aed"?T+ih-6:y(days[i][2])}" r="5" fill="${a[1]==="spend_aed"?"#a855f7":"#e11d48"}" stroke="#fff" stroke-width="1.3"
+        data-tip="<b>${a[0]}</b><br>${a[1].replace("_aed"," (AED)")}: ${a[3]} ${a[2]>0?"+":""}${a[2]}% vs baseline"/>`});
+  let last=""; days.forEach((d,i)=>{const m=d[0].slice(0,7); if(m!==last&&(m.slice(5)==="01"||m.slice(5)==="04"||m.slice(5)==="07"||m.slice(5)==="10")){s+=`<text x="${x(i)}" y="${H-8}" text-anchor="middle">${m}</text>`} last=m});
+  $("#daily").innerHTML=s+"</svg>"; bindTips($("#daily"));
+  $("#dailyLegend").innerHTML=`<span><i class="dot" style="background:var(--accent)"></i>Daily sessions</span><span><i class="dot" style="background:var(--accent2)"></i>7-day average</span>
+   <span><i class="dot" style="background:#e11d48"></i>Traffic anomaly</span><span><i class="dot" style="background:#a855f7"></i>Spend anomaly</span><span><i class="dot" style="background:rgba(31,111,235,.3)"></i>Planned event</span>`;
+}
+
+/* ---------- weekday x month heatmap ---------- */
+function heat(){
+  const days=D.daily.filter(d=>S.year==="All"||d[0].slice(0,4)===S.year);
+  const wd=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"], mn=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const sum={},cnt={}; days.forEach(d=>{const k=d[1]+"|"+(+d[0].slice(5,7)-1); sum[k]=(sum[k]||0)+d[2]; cnt[k]=(cnt[k]||0)+1});
+  const vals=Object.keys(sum).map(k=>sum[k]/cnt[k]); const lo=Math.min(...vals),hi=Math.max(...vals);
+  let h="<table class='hm'><tr><td></td>"+mn.map(m=>`<td>${m}</td>`).join("")+"</tr>";
+  wd.forEach(w=>{h+=`<tr><td style="text-align:right;color:var(--muted)">${w}</td>`+mn.map((m,i)=>{const k=w+"|"+i;const v=cnt[k]?sum[k]/cnt[k]:null;
+    if(v==null) return "<td></td>"; const a=(v-lo)/(hi-lo);
+    return `<td style="background:rgba(31,111,235,${.10+a*.85});color:${a>.55?"#fff":"var(--ink)"}" data-tip="${w} in ${m}: ${nf(v,0)} sessions/day">${aed(v)}</td>`}).join("")+"</tr>"});
+  $("#heat").innerHTML=h+"</table>"; bindTips($("#heat"));
+}
+
+/* ---------- cohort heatmap ---------- */
+function cohort(){
+  const by={}; D.cohort.forEach(r=>{(by[r[0]]=by[r[0]]||{size:r[2],ret:{}}).ret[r[1]]=100*r[3]/r[2]});
+  const ks=Object.keys(by).sort(), maxM=12;
+  let h="<table class='hm'><tr><td>Cohort</td><td>Size</td>"+Array.from({length:maxM+1},(_,i)=>`<td>M${i}</td>`).join("")+"</tr>";
+  ks.forEach(k=>{h+=`<tr><td style="text-align:left;color:var(--muted)">${k}</td><td style="color:var(--muted)">${aed(by[k].size)}</td>`+
+    Array.from({length:maxM+1},(_,i)=>{const v=by[k].ret[i]; if(v==null) return "<td></td>"; const a=i===0?0.0:Math.min(1,v/45);
+     return `<td style="background:${i===0?"transparent":`rgba(42,157,143,${.12+a*.8})`};color:${a>.6?"#fff":"var(--ink)"}" data-tip="${k}, month ${i}: ${nf(v,1)}% still buying">${i===0?"100":nf(v,0)}</td>`}).join("")+"</tr>"});
+  $("#cohort").innerHTML=h+"</table>"; bindTips($("#cohort"));
+}
+
+/* ---------- wiring ---------- */
+function fill(id,opts){$(id).innerHTML=opts.map(o=>`<option value="${o[0]}">${o[1]}</option>`).join("")}
+fill("#fYear",[["All","All years"],["2024","2024"],["2025","2025"]]);
+fill("#fCountry",[["All","All markets"],...D.countries.map(c=>[c[0],c[1]])]);
+fill("#fGroup",[["All","All channel groups"],...groups.map(g=>[g,g])]);
+fill("#fDevice",[["All","All devices"],["Mobile","Mobile"],["Desktop","Desktop"],["Tablet","Tablet"]]);
+$("#ins").innerHTML=D.insights.map(t=>`<li>${t}</li>`).join("");
+function render(){
+  kpis();trend();table();funnel();
+  splitBars("#markets",r=>r[2],k=>cname[k],"rev");
+  splitBars("#devices",r=>r[3],k=>k,"sess");
+  daily();heat();cohort();
+}
+[["#fYear","year"],["#fCountry","country"],["#fGroup","group"],["#fDevice","device"]].forEach(([id,k])=>$(id).onchange=e=>{S[k]=e.target.value;render()});
+$("#reset").onclick=()=>{Object.assign(S,{year:"All",country:"All",group:"All",device:"All"});["#fYear","#fCountry","#fGroup","#fDevice"].forEach(i=>$(i).value="All");render()};
+// allow deep links such as index.html?year=2025&country=SA
+new URLSearchParams(location.search).forEach((v,k)=>{if(k in S&&$("#f"+k[0].toUpperCase()+k.slice(1))){S[k]=v;$("#f"+k[0].toUpperCase()+k.slice(1)).value=v}});
+render();
+</script>
+</body>
+</html>
