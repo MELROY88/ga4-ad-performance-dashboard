@@ -1,0 +1,43 @@
+name: build
+
+# Rebuilds the synthetic data, analysis tables, dashboard and README screenshots.
+# Runs when the code changes, or manually from the Actions tab.
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "data/**"
+      - "outputs/**"
+      - "images/**"
+      - "dashboard/index.html"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: pip install pandas numpy playwright
+      - name: Generate data, analyse, build dashboard
+        run: |
+          python src/generate_data.py
+          python src/analyse.py
+          python src/build_dashboard.py
+      - name: Take screenshots
+        run: |
+          playwright install --with-deps chromium
+          python src/make_screenshots.py
+      - name: Commit results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || git commit -m "Rebuild data, dashboard and screenshots"
+          git push
