@@ -1,0 +1,78 @@
+// ===== Create a table called "_Measures" (Enter data, one blank column) and add these measures =====
+
+// ---------- Core volume ----------
+Revenue = SUM(fact_performance_weekly[revenue_aed])
+Sessions = SUM(fact_performance_weekly[sessions])
+Engaged Sessions = SUM(fact_performance_weekly[engaged_sessions])
+Purchases = SUM(fact_performance_weekly[purchases])
+Paid Spend = SUM(fact_performance_weekly[spend_aed])
+Clicks = SUM(fact_performance_weekly[clicks])
+Impressions = SUM(fact_performance_weekly[impressions])
+
+// ---------- Ratios ----------
+Conversion Rate = DIVIDE([Purchases], [Sessions])
+Engagement Rate = DIVIDE([Engaged Sessions], [Sessions])
+AOV = DIVIDE([Revenue], [Purchases])
+CTR = DIVIDE([Clicks], [Impressions])
+CPC = DIVIDE([Paid Spend], [Clicks])
+
+// ---------- Paid media (owned channels have no spend, so filter to paid) ----------
+Paid Revenue =
+CALCULATE([Revenue], dim_campaign[kind] = "paid")
+
+Paid Purchases =
+CALCULATE([Purchases], dim_campaign[kind] = "paid")
+
+Paid ROAS = DIVIDE([Paid Revenue], [Paid Spend])
+Paid CPA = DIVIDE([Paid Spend], [Paid Purchases])
+
+// ---------- Funnel step rates ----------
+Add to Cart Rate = DIVIDE(SUM(fact_performance_weekly[add_to_cart]), [Engaged Sessions])
+Checkout Rate = DIVIDE(SUM(fact_performance_weekly[begin_checkout]), SUM(fact_performance_weekly[add_to_cart]))
+Purchase Rate = DIVIDE([Purchases], SUM(fact_performance_weekly[begin_checkout]))
+
+// ---------- Time intelligence ----------
+Revenue PY = CALCULATE([Revenue], SAMEPERIODLASTYEAR(dim_date[date]))
+Revenue YoY % = DIVIDE([Revenue] - [Revenue PY], [Revenue PY])
+Revenue YTD = TOTALYTD([Revenue], dim_date[date])
+Revenue 3M Avg =
+AVERAGEX(DATESINPERIOD(dim_date[date], MAX(dim_date[date]), -3, MONTH), [Revenue])
+ROAS PY = CALCULATE([Paid ROAS], SAMEPERIODLASTYEAR(dim_date[date]))
+ROAS YoY (pts) = [Paid ROAS] - [ROAS PY]
+
+// ---------- Budget view ----------
+Spend Share % = DIVIDE([Paid Spend], CALCULATE([Paid Spend], ALL(dim_campaign)))
+Revenue Share % =
+DIVIDE([Paid Revenue], CALCULATE([Paid Revenue], ALL(dim_campaign)))
+ROAS Status =
+SWITCH(TRUE(),
+    ISBLANK([Paid ROAS]), "Owned",
+    [Paid ROAS] >= 4, "Scale",
+    [Paid ROAS] >= 2.5, "Hold",
+    "Review")
+
+// ---------- Anomaly flag on the daily fact ----------
+Sessions (daily) = SUM(fact_site_daily[sessions])
+Sessions Baseline =
+// average of the same weekday in the previous 4 weeks
+VAR d = MAX(fact_site_daily[date])
+RETURN
+CALCULATE(
+    AVERAGE(fact_site_daily[sessions]),
+    FILTER(ALL(fact_site_daily),
+        fact_site_daily[weekday] = MAX(fact_site_daily[weekday])
+        && fact_site_daily[date] < d
+        && fact_site_daily[date] >= d - 28))
+
+Sessions vs Baseline % = DIVIDE([Sessions (daily)] - [Sessions Baseline], [Sessions Baseline])
+Anomaly Flag = IF(ABS([Sessions vs Baseline %]) > 0.4, 1, 0)
+
+// ---------- Cohort retention ----------
+Cohort Retention % =
+DIVIDE(SUM(fact_cohort_retention[active_customers]), SUM(fact_cohort_retention[cohort_size]))
+
+// ---------- Dynamic headline text for a card ----------
+Headline =
+"Paid ROAS " & FORMAT([Paid ROAS], "0.00") & "x  |  Revenue AED " &
+FORMAT([Revenue] / 1000000, "0.0") & "M  |  " &
+FORMAT([Revenue YoY %], "+0.0%;-0.0%") & " YoY"
